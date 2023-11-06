@@ -189,11 +189,9 @@ packages:
   breez_translations:
     dependency: "direct main"
     description:
-      path: "."
-      ref: ba8d9bd644a013521389d225bb6850dcd4a2918f
-      resolved-ref: ba8d9bd644a013521389d225bb6850dcd4a2918f
-      url: "https://github.com/breez/Breez-Translations.git"
-    source: git
+      path: "../Breez-Translations"
+      relative: true
+    source: path
     version: "1.0.0"
   bs58check:
     dependency: transitive
