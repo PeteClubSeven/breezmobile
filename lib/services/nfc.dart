@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:breez/services/device.dart';
 import 'package:breez/services/injector.dart';
 import 'package:breez/services/supported_schemes.dart';
-import 'package:cktap_protocol/cktap.dart';
+import 'package:cktap_protocol/cktap_protocol.dart';
 import 'package:flutter/services.dart';
 import 'package:logging/logging.dart';
 import 'package:nfc_manager/nfc_manager.dart';
@@ -92,7 +92,7 @@ class NFCService {
           for (var rec in ndef.cachedMessage.records) {
             String payload = String.fromCharCodes(rec.payload);
             if (_handleLnLink(payload) ||
-                !(await _handleSatscard(payload, tag))) {
+                (await _handleSatscard(payload, tag))) {
               if (autoClose) {
                 NfcManager.instance.stopSession();
               }

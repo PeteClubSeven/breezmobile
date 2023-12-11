@@ -9,7 +9,7 @@ import 'package:breez/services/injector.dart';
 import 'package:breez/services/nfc.dart';
 import 'package:cktap_protocol/cktapcard.dart';
 import 'package:cktap_protocol/exceptions.dart';
-import 'package:cktap_protocol/transport.dart';
+import 'package:cktap_transport_nfc_manager/cktap_transport_nfc_manager.dart';
 import 'package:logging/logging.dart';
 import 'package:nfc_manager/nfc_manager.dart';
 
