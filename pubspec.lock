@@ -288,7 +288,7 @@ packages:
     description:
       path: "."
       ref: "release/breez"
-      resolved-ref: "80680edcf047007f25bbe6ced025b8c017a001cd"
+      resolved-ref: "408e1fadbb1fa174f51dab4ace2d83919f72518b"
       url: "https://github.com/PeteClubSeven/cktap-protocol-flutter.git"
     source: git
     version: "0.0.1"

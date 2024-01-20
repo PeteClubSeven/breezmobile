@@ -31,6 +31,10 @@ class NFCService {
     return _lnLinkController.stream;
   }
 
+  /// A cache of whether NFC capabilities are available on this device
+  bool _isAvailable = false;
+  bool get isAvailable => _isAvailable;
+
   NFCService() {
     if (Platform.isAndroid) {
       int fnCalls = 0;
@@ -48,8 +52,8 @@ class NFCService {
     _listenLnLinks();
   }
 
-  starSession({bool autoClose}) {
-    _startNFCSession(autoClose: autoClose);
+  startSession({bool autoClose = false, bool lnurlOnly = false, bool satscardOnly = false}) {
+    _startNFCSession(autoClose: autoClose, lnurlOnly: lnurlOnly, satscardOnly: satscardOnly);
   }
 
   _checkNfcStartedWith() async {
@@ -64,9 +68,9 @@ class NFCService {
   _listenLnLinks() async {
     // Check availability
     _log.info("check if nfc available");
-    bool isAvailable = await NfcManager.instance.isAvailable();
-    _log.info("nfc available $isAvailable");
-    if (isAvailable && Platform.isAndroid) {
+    _isAvailable = await NfcManager.instance.isAvailable();
+    _log.info("nfc available $_isAvailable");
+    if (_isAvailable && Platform.isAndroid) {
       _startNFCSession();
       ServiceInjector().device.eventStream.distinct().listen((event) {
         switch (event) {
@@ -82,7 +86,7 @@ class NFCService {
     }
   }
 
-  _startNFCSession({bool autoClose = false}) async {
+  _startNFCSession({bool autoClose = false, bool lnurlOnly = false, bool satscardOnly = false}) async {
     await NfcManager.instance.stopSession();
     NfcManager.instance.startSession(
       onDiscovered: (NfcTag tag) async {
@@ -90,9 +94,9 @@ class NFCService {
         _log.info("tag data: ${tag.data.toString()}");
         if (ndef != null) {
           for (var rec in ndef.cachedMessage.records) {
-            String payload = String.fromCharCodes(rec.payload);
-            if (_handleLnLink(payload) ||
-                (await _handleSatscard(payload, tag))) {
+            final payload = String.fromCharCodes(rec.payload);
+            final wasHandled = await _handlePayload(payload, tag, lnurlOnly: lnurlOnly, satscardOnly: satscardOnly);
+            if (wasHandled) {
               if (autoClose) {
                 NfcManager.instance.stopSession();
               }
@@ -105,29 +109,28 @@ class NFCService {
     );
   }
 
-  bool _handleLnLink(String payload) {
-    final link = extractPayloadLink(payload);
-    if (link != null) {
-      _log.info("nfc broadcasting link: $link");
-      _lnLinkController.add(link);
-      return true;
-    }
-
-    return false;
-  }
-
-  Future<bool> _handleSatscard(String payload, NfcTag tag) async {
-    if (CKTap.isLikelySatscard(payload)) {
-      if (onSatscardTag != null) {
-        _log.info("nfc broadcasting possible satscard: $payload");
-        await onSatscardTag(tag);
-      } else {
-        _log.warning(
-            "nfc encountered Satscard but no callback was registered: $payload");
+  Future<bool> _handlePayload(String payload, NfcTag tag, {bool lnurlOnly, bool satscardOnly}) async {
+    final checkAll = !(lnurlOnly || satscardOnly);
+    if (checkAll || lnurlOnly) {
+      final link = extractPayloadLink(payload);
+      if (link != null) {
+        _log.info("nfc broadcasting link: $link");
+        _lnLinkController.add(link);
+        return true;
       }
-      return true;
     }
-
+    if (checkAll || satscardOnly) {
+      if (CKTap.isLikelySatscard(payload)) {
+        if (onSatscardTag != null) {
+          _log.info("nfc broadcasting possible satscard: $payload");
+          await onSatscardTag(tag);
+        } else {
+          _log.warning(
+              "nfc encountered Satscard but no callback was registered: $payload");
+        }
+        return true;
+      }
+    }
     return false;
   }
 
