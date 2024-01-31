@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:anytime/bloc/podcast/audio_bloc.dart';
 import 'package:anytime/ui/anytime_podcast_app.dart';
@@ -536,10 +537,17 @@ class HomeState extends State<Home> with WidgetsBindingObserver {
     widget.satscardBloc.actionsSink.add(EnableListening());
     widget.satscardBloc.detectedStream.listen((status) async {
       Navigator.popUntil(context, (route) => route.settings.name == "/");
+      final nfc = ServiceInjector().nfc;
       final texts = context.texts();
       final themeData = Theme.of(context);
       if (_handleSatscardErrors(themeData, texts, status)) {
+        if (Platform.isIOS) {
+          nfc.stopSession(iosError: texts.satscard_ios_error_label);
+        }
         return;
+      }
+      if (Platform.isIOS) {
+        nfc.stopSession(iosAlert: texts.satscard_ios_success_label);
       }
 
       // Disable listening until we finish operating on the detected card

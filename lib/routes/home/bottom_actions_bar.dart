@@ -438,7 +438,7 @@ Future showReceiveOptions(
                 if (Platform.isIOS && nfc.isAvailable) {
                   children.add(
                     Column(
-                      children: [
+                      children: <Widget>[
                         Divider(
                           height: 0.0,
                           color: themeData.dividerColor.withOpacity(0.2),
@@ -450,12 +450,17 @@ Future showReceiveOptions(
                             svgAssetPath: "src/icon/nfc.svg",
                           ),
                           title: Text(
-                            texts.bottom_action_bar_scan_satscard,
+                            texts.bottom_action_bar_sweep_satscard,
                             style: theme.bottomSheetTextStyle,
                           ),
                           onTap: () {
                             Navigator.of(context).pop();
-                            ServiceInjector().nfc.startSession(autoClose: true, satscardOnly: true);
+                            ServiceInjector().nfc.startSession(
+                                  autoClose: false,
+                                  satscardOnly: true,
+                                  iosAlert: texts
+                                      .bottom_action_bar_sweep_satscard_nfc_prompt,
+                                );
                           },
                         ),
                       ],

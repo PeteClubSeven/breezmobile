@@ -52,8 +52,26 @@ class NFCService {
     _listenLnLinks();
   }
 
-  startSession({bool autoClose = false, bool lnurlOnly = false, bool satscardOnly = false}) {
-    _startNFCSession(autoClose: autoClose, lnurlOnly: lnurlOnly, satscardOnly: satscardOnly);
+  startSession({
+    bool autoClose = false,
+    String iosAlert,
+    bool lnurlOnly = false,
+    bool satscardOnly = false,
+  }) {
+    _startNFCSession(
+        autoClose: autoClose,
+        iosAlert: iosAlert,
+        lnurlOnly: lnurlOnly,
+        satscardOnly: satscardOnly);
+  }
+
+  stopSession({String iosAlert, String iosError}) {
+    NfcManager.instance
+        .stopSession(alertMessage: iosAlert, errorMessage: iosError);
+  }
+
+  updateAlert(String iosAlert) {
+    NfcManager.instance.updateSession(iosAlert);
   }
 
   _checkNfcStartedWith() async {
@@ -86,16 +104,23 @@ class NFCService {
     }
   }
 
-  _startNFCSession({bool autoClose = false, bool lnurlOnly = false, bool satscardOnly = false}) async {
+  _startNFCSession({
+    bool autoClose = false,
+    String iosAlert,
+    bool lnurlOnly = false,
+    bool satscardOnly = false,
+  }) async {
     await NfcManager.instance.stopSession();
     NfcManager.instance.startSession(
+      alertMessage: iosAlert,
       onDiscovered: (NfcTag tag) async {
         var ndef = Ndef.from(tag);
         _log.info("tag data: ${tag.data.toString()}");
         if (ndef != null) {
           for (var rec in ndef.cachedMessage.records) {
             final payload = String.fromCharCodes(rec.payload);
-            final wasHandled = await _handlePayload(payload, tag, lnurlOnly: lnurlOnly, satscardOnly: satscardOnly);
+            final wasHandled = await _handlePayload(payload, tag,
+                lnurlOnly: lnurlOnly, satscardOnly: satscardOnly);
             if (wasHandled) {
               if (autoClose) {
                 NfcManager.instance.stopSession();
@@ -109,7 +134,8 @@ class NFCService {
     );
   }
 
-  Future<bool> _handlePayload(String payload, NfcTag tag, {bool lnurlOnly, bool satscardOnly}) async {
+  Future<bool> _handlePayload(String payload, NfcTag tag,
+      {bool lnurlOnly, bool satscardOnly}) async {
     final checkAll = !(lnurlOnly || satscardOnly);
     if (checkAll || lnurlOnly) {
       final link = extractPayloadLink(payload);

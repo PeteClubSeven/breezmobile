@@ -16,8 +16,8 @@ dependencies:
   bip39: ^1.0.6
   breez_translations:
     git:
-      url: https://github.com/breez/Breez-Translations.git
-      ref: caa19704e04fb3cd0c98c342edaee8a5d0edc535
+      url: https://github.com/PeteClubSeven/Breez-Translations
+      ref: 70c459a2848101f808a61dc37521afa9bdf000d9
   cktap_protocol:
     git:
       url: https://github.com/PeteClubSeven/cktap-protocol-flutter.git
